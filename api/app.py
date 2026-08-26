@@ -2,14 +2,13 @@ from datetime import datetime
 
 from flask import Flask, jsonify, request
 
-from api.alert_service import (acknowledge_alert,get_alerts)
+from api.alert_service import acknowledge_alert, get_alerts
 from api.cashflow_service import get_cashflow
 from api.data_service import get_transaction_page
-from api.kpi_service import get_kpi_summary
-from api.data_service import get_transaction_page
+from api.expense_service import get_expense_breakdown
 from api.kpi_service import get_kpi_summary
 from api.loan_service import get_loan_portfolio
-from api.expense_service import get_expense_breakdown
+
 
 def create_app():
     app = Flask(__name__)
@@ -25,17 +24,37 @@ def create_app():
 
     @app.get("/api/transactions")
     def get_transactions():
-        page = request.args.get(
+        page_value = request.args.get(
             "page",
-            default=1,
-            type=int
+            default="1"
         )
 
-        per_page = request.args.get(
+        per_page_value = request.args.get(
             "per_page",
-            default=25,
-            type=int
+            default="25"
         )
+
+        try:
+            page = int(page_value)
+
+        except ValueError:
+            return jsonify(
+                {
+                    "error": "page must be an integer"
+                }
+            ), 400
+
+        try:
+            per_page = int(per_page_value)
+
+        except ValueError:
+            return jsonify(
+                {
+                    "error": (
+                        "per_page must be an integer"
+                    )
+                }
+            ), 400
         branch = request.args.get("branch")
         start = request.args.get("start")
         end = request.args.get("end")

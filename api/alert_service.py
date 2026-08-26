@@ -1,10 +1,8 @@
 import json
-
 from copy import deepcopy
 from datetime import datetime, timezone
 from functools import lru_cache
 from pathlib import Path
-
 
 ALERT_FIXTURE_FILE = (
     Path(__file__).resolve().parent

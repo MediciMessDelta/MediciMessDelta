@@ -3,7 +3,6 @@ from pathlib import Path
 
 import pandas as pd
 
-
 DATA_FILE = (
     Path(__file__).resolve().parents[1]
     / "medici_transactions.csv"

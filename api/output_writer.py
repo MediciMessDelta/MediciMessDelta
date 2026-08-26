@@ -1,6 +1,5 @@
 import csv
 import json
-
 from pathlib import Path
 
 from api.alert_service import get_alerts
@@ -8,7 +7,6 @@ from api.cashflow_service import get_cashflow
 from api.expense_service import get_expense_breakdown
 from api.kpi_service import get_kpi_summary
 from api.loan_service import get_loan_portfolio
-
 
 DEFAULT_OUTPUT_DIRECTORY = (
     Path(__file__).resolve().parents[1]

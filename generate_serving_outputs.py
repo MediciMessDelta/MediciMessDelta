@@ -1,5 +1,4 @@
 import argparse
-
 from datetime import datetime
 
 from api.output_writer import generate_serving_outputs

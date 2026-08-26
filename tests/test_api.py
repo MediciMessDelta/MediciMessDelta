@@ -1,11 +1,13 @@
 import csv
 import json
+import time
 
 import pytest
 
 from api.alert_service import reset_alert_fixture
 from api.app import create_app
 from api.output_writer import generate_serving_outputs
+
 
 @pytest.fixture
 def client():
@@ -89,6 +91,33 @@ def test_per_page_cannot_exceed_100(client):
     assert data["error"] == (
         "per_page must be between 1 and 100"
     )
+
+@pytest.mark.parametrize(
+    "query_string, expected_error",
+    [
+        (
+            "page=abc",
+            "page must be an integer"
+        ),
+        (
+            "per_page=many",
+            "per_page must be an integer"
+        )
+    ]
+)
+def test_transactions_reject_non_integer_pagination(
+    client,
+    query_string,
+    expected_error
+):
+    response = client.get(
+        f"/api/transactions?{query_string}"
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert data["error"] == expected_error
 
 def test_kpi_endpoint_returns_summary(client):
     response = client.get(
@@ -519,3 +548,61 @@ def test_serving_output_writer_creates_files(
     assert len(loan_rows) == 4
     assert "loan_id" in loan_rows[0]
     assert "outstanding_balance" in loan_rows[0]
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        (
+            "/api/transactions"
+            "?branch=Florence"
+            "&page=1"
+            "&per_page=25"
+        ),
+        (
+            "/api/kpis"
+            "?branch=Florence"
+            "&start=1420-01-01"
+            "&end=1420-12-31"
+        ),
+        (
+            "/api/cashflow"
+            "?branch=Florence"
+            "&start=1420-01-01"
+            "&end=1420-12-31"
+            "&granularity=monthly"
+        ),
+        (
+            "/api/loans"
+            "?branch=Florence"
+        ),
+        (
+            "/api/expenses"
+            "?branch=Florence"
+            "&start=1420-01-01"
+            "&end=1420-12-31"
+        ),
+        (
+            "/api/alerts"
+            "?branch=Florence"
+        )
+    ]
+)
+def test_get_endpoints_respond_under_500ms(
+    client,
+    url
+):
+    warmup_response = client.get(url)
+
+    assert warmup_response.status_code == 200
+
+    start_time = time.perf_counter()
+
+    response = client.get(url)
+
+    elapsed_time = time.perf_counter() - start_time
+
+    assert response.status_code == 200
+
+    assert elapsed_time < 0.5, (
+        f"{url} took {elapsed_time:.3f} seconds"
+    )

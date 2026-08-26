@@ -1,9 +1,7 @@
 import json
-
 from copy import deepcopy
 from functools import lru_cache
 from pathlib import Path
-
 
 LOAN_FIXTURE_FILE = (
     Path(__file__).resolve().parent
