@@ -2,6 +2,9 @@ from datetime import datetime
 
 from flask import Flask, jsonify, request
 
+from api.cashflow_service import get_cashflow
+from api.data_service import get_transaction_page
+from api.kpi_service import get_kpi_summary
 from api.data_service import get_transaction_page
 from api.kpi_service import get_kpi_summary
 
@@ -158,6 +161,91 @@ def create_app():
             branch=branch,
             start=start,
             end=end
+        )
+
+        return jsonify(result), 200
+
+    @app.get("/api/cashflow")
+    def get_cashflow_endpoint():
+        branch = request.args.get("branch")
+        start = request.args.get("start")
+        end = request.args.get("end")
+
+        granularity = request.args.get(
+            "granularity",
+            default="monthly"
+        ).casefold()
+
+        missing_parameters = []
+
+        if not branch:
+            missing_parameters.append("branch")
+
+        if not start:
+            missing_parameters.append("start")
+
+        if not end:
+            missing_parameters.append("end")
+
+        if missing_parameters:
+            return jsonify(
+                {
+                    "error": "missing required parameters",
+                    "missing": missing_parameters
+                }
+            ), 400
+
+        allowed_granularities = [
+            "daily",
+            "weekly",
+            "monthly"
+        ]
+
+        if granularity not in allowed_granularities:
+            return jsonify(
+                {
+                    "error": (
+                        "granularity must be daily, "
+                        "weekly, or monthly"
+                    )
+                }
+            ), 400
+
+        try:
+            start_date = datetime.strptime(
+                start,
+                "%Y-%m-%d"
+            )
+
+            end_date = datetime.strptime(
+                end,
+                "%Y-%m-%d"
+            )
+
+        except ValueError:
+            return jsonify(
+                {
+                    "error": (
+                        "start and end must use "
+                        "YYYY-MM-DD format"
+                    )
+                }
+            ), 400
+
+        if start_date > end_date:
+            return jsonify(
+                {
+                    "error": (
+                        "start date cannot be after end date"
+                    )
+                }
+            ), 400
+
+        result = get_cashflow(
+            branch=branch,
+            start=start,
+            end=end,
+            granularity=granularity
         )
 
         return jsonify(result), 200

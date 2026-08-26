@@ -134,3 +134,78 @@ def test_kpi_start_date_cannot_be_after_end_date(
     assert data["error"] == (
         "start date cannot be after end date"
     )
+
+def test_cashflow_endpoint_returns_monthly_data(
+    client
+):
+    response = client.get(
+        "/api/cashflow"
+        "?branch=Florence"
+        "&start=1420-01-01"
+        "&end=1420-12-31"
+        "&granularity=monthly"
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["branch"] == "Florence"
+    assert data["granularity"] == "monthly"
+    assert data["data_source"] == (
+        "development_fixture"
+    )
+    assert len(data["time_series"]) == 3
+    assert data["time_series"][0]["period"] == (
+        "1420-01"
+    )
+
+def test_cashflow_granularity_is_case_insensitive(
+    client
+):
+    response = client.get(
+        "/api/cashflow"
+        "?branch=Rome"
+        "&start=1420-01-01"
+        "&end=1420-12-31"
+        "&granularity=WEEKLY"
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["granularity"] == "weekly"
+    assert len(data["time_series"]) == 2
+
+def test_cashflow_rejects_invalid_granularity(
+    client
+):
+    response = client.get(
+        "/api/cashflow"
+        "?branch=Florence"
+        "&start=1420-01-01"
+        "&end=1420-12-31"
+        "&granularity=yearly"
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert data["error"] == (
+        "granularity must be daily, weekly, "
+        "or monthly"
+    )
+
+def test_cashflow_requires_branch_and_dates(client):
+    response = client.get("/api/cashflow")
+
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert data["error"] == (
+        "missing required parameters"
+    )
+    assert data["missing"] == [
+        "branch",
+        "start",
+        "end"
+    ]

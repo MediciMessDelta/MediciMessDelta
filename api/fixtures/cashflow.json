@@ -1,0 +1,64 @@
+{
+  "daily": [
+    {
+      "period": "1420-01-01",
+      "inflows": "3000.00",
+      "outflows": "1800.00",
+      "net_movement": "1200.00",
+      "closing_balance": "101200.00"
+    },
+    {
+      "period": "1420-01-02",
+      "inflows": "4500.00",
+      "outflows": "2500.00",
+      "net_movement": "2000.00",
+      "closing_balance": "103200.00"
+    },
+    {
+      "period": "1420-01-03",
+      "inflows": "2750.00",
+      "outflows": "3100.00",
+      "net_movement": "-350.00",
+      "closing_balance": "102850.00"
+    }
+  ],
+  "weekly": [
+    {
+      "period": "1420-W01",
+      "inflows": "23500.00",
+      "outflows": "15000.00",
+      "net_movement": "8500.00",
+      "closing_balance": "108500.00"
+    },
+    {
+      "period": "1420-W02",
+      "inflows": "21000.00",
+      "outflows": "17500.00",
+      "net_movement": "3500.00",
+      "closing_balance": "112000.00"
+    }
+  ],
+  "monthly": [
+    {
+      "period": "1420-01",
+      "inflows": "75000.00",
+      "outflows": "52000.00",
+      "net_movement": "23000.00",
+      "closing_balance": "123000.00"
+    },
+    {
+      "period": "1420-02",
+      "inflows": "68000.00",
+      "outflows": "49000.00",
+      "net_movement": "19000.00",
+      "closing_balance": "142000.00"
+    },
+    {
+      "period": "1420-03",
+      "inflows": "82000.00",
+      "outflows": "61000.00",
+      "net_movement": "21000.00",
+      "closing_balance": "163000.00"
+    }
+  ]
+}
