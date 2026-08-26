@@ -80,3 +80,57 @@ def test_per_page_cannot_exceed_100(client):
     assert data["error"] == (
         "per_page must be between 1 and 100"
     )
+
+def test_kpi_endpoint_returns_summary(client):
+    response = client.get(
+        "/api/kpis"
+        "?branch=Florence"
+        "&start=1420-01-01"
+        "&end=1420-12-31"
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["branch"] == "Florence"
+    assert data["period"]["start"] == "1420-01-01"
+    assert data["period"]["end"] == "1420-12-31"
+    assert data["data_source"] == "development_fixture"
+
+    assert "cash_position" in data["kpis"]
+    assert "deposits" in data["kpis"]
+    assert "withdrawals" in data["kpis"]
+    assert "loans" in data["kpis"]
+    assert "operating_expenses" in data["kpis"]
+    assert "revenue" in data["kpis"]
+    assert "net_income" in data["kpis"]
+
+def test_kpi_endpoint_requires_dates(client):
+    response = client.get(
+        "/api/kpis?branch=Florence"
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert data["error"] == (
+        "missing required parameters"
+    )
+    assert data["missing"] == ["start", "end"]
+
+def test_kpi_start_date_cannot_be_after_end_date(
+    client
+):
+    response = client.get(
+        "/api/kpis"
+        "?branch=Florence"
+        "&start=1421-01-01"
+        "&end=1420-01-01"
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert data["error"] == (
+        "start date cannot be after end date"
+    )
