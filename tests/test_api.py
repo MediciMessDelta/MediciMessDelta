@@ -209,3 +209,60 @@ def test_cashflow_requires_branch_and_dates(client):
         "start",
         "end"
     ]
+
+def test_loans_endpoint_returns_all_loans(client):
+    response = client.get(
+        "/api/loans?branch=Florence"
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["branch"] == "Florence"
+    assert data["data_source"] == (
+        "development_fixture"
+    )
+    assert data["status_filter"] is None
+    assert data["total_loans"] == 4
+    assert len(data["loans"]) == 4
+
+def test_loans_can_be_filtered_by_status(client):
+    response = client.get(
+        "/api/loans"
+        "?branch=Florence"
+        "&status=open"
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["status_filter"] == "OPEN"
+    assert data["total_loans"] == 2
+
+    for loan in data["loans"]:
+        assert loan["status"] == "OPEN"
+
+def test_loans_reject_invalid_status(client):
+    response = client.get(
+        "/api/loans"
+        "?branch=Florence"
+        "&status=pending"
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert data["error"] == (
+        "status must be OPEN, OVERDUE, or REPAID"
+    )
+
+def test_loans_require_branch(client):
+    response = client.get("/api/loans")
+
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert data["error"] == (
+        "missing required parameters"
+    )
+    assert data["missing"] == ["branch"]

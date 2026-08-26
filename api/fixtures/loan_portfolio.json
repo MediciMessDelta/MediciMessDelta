@@ -1,0 +1,42 @@
+[
+  {
+    "loan_id": "LOAN-1420-001",
+    "counterparty": "Florentine Wool Guild",
+    "issued_date": "1420-01-15",
+    "due_date": "1421-01-15",
+    "original_principal": "25000.00",
+    "outstanding_balance": "18000.00",
+    "interest_rate": "0.10",
+    "status": "OPEN"
+  },
+  {
+    "loan_id": "LOAN-1420-002",
+    "counterparty": "Republic of Florence",
+    "issued_date": "1420-02-01",
+    "due_date": "1422-02-01",
+    "original_principal": "75000.00",
+    "outstanding_balance": "75000.00",
+    "interest_rate": "0.08",
+    "status": "OPEN"
+  },
+  {
+    "loan_id": "LOAN-1419-003",
+    "counterparty": "Venetian Spice Merchant",
+    "issued_date": "1419-06-10",
+    "due_date": "1420-06-10",
+    "original_principal": "12000.00",
+    "outstanding_balance": "3000.00",
+    "interest_rate": "0.12",
+    "status": "OVERDUE"
+  },
+  {
+    "loan_id": "LOAN-1419-004",
+    "counterparty": "Milanese Silk Merchant",
+    "issued_date": "1419-03-20",
+    "due_date": "1420-03-20",
+    "original_principal": "10000.00",
+    "outstanding_balance": "0.00",
+    "interest_rate": "0.09",
+    "status": "REPAID"
+  }
+]

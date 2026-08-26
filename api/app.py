@@ -7,7 +7,7 @@ from api.data_service import get_transaction_page
 from api.kpi_service import get_kpi_summary
 from api.data_service import get_transaction_page
 from api.kpi_service import get_kpi_summary
-
+from api.loan_service import get_loan_portfolio
 
 def create_app():
     app = Flask(__name__)
@@ -246,6 +246,45 @@ def create_app():
             start=start,
             end=end,
             granularity=granularity
+        )
+
+        return jsonify(result), 200
+
+    @app.get("/api/loans")
+    def get_loans():
+        branch = request.args.get("branch")
+        status = request.args.get("status")
+
+        if not branch:
+            return jsonify(
+                {
+                    "error": "missing required parameters",
+                    "missing": ["branch"]
+                }
+            ), 400
+
+        allowed_statuses = [
+            "OPEN",
+            "OVERDUE",
+            "REPAID"
+        ]
+
+        if status:
+            status = status.upper()
+
+            if status not in allowed_statuses:
+                return jsonify(
+                    {
+                        "error": (
+                            "status must be OPEN, "
+                            "OVERDUE, or REPAID"
+                        )
+                    }
+                ), 400
+
+        result = get_loan_portfolio(
+            branch=branch,
+            status=status
         )
 
         return jsonify(result), 200
