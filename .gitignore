@@ -209,3 +209,6 @@ __marimo__/
 # Demo exported files (temporary)
 exported_transactions.csv
 exported_transactions.json
+
+# Generated serving-layer output files
+serving_outputs/

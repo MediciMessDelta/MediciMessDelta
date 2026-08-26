@@ -1,7 +1,11 @@
+import csv
+import json
+
 import pytest
 
 from api.alert_service import reset_alert_fixture
 from api.app import create_app
+from api.output_writer import generate_serving_outputs
 
 @pytest.fixture
 def client():
@@ -457,3 +461,61 @@ def test_acknowledge_requires_user_and_note(client):
         "missing required fields"
     )
     assert data["missing"] == ["note"]
+
+def test_serving_output_writer_creates_files(
+    tmp_path
+):
+    output_paths = generate_serving_outputs(
+        branch="Florence",
+        start="1420-01-01",
+        end="1420-12-31",
+        output_directory=tmp_path
+    )
+
+    assert set(output_paths.keys()) == {
+        "metrics",
+        "time_series",
+        "alerts",
+        "expenses",
+        "loans"
+    }
+
+    for file_path in output_paths.values():
+        assert file_path.exists()
+        assert file_path.stat().st_size > 0
+
+    with open(
+        output_paths["metrics"],
+        "r",
+        encoding="utf-8"
+    ) as metrics_file:
+        metrics_data = json.load(metrics_file)
+
+    assert metrics_data["branch"] == "Florence"
+    assert "kpis" in metrics_data
+
+    with open(
+        output_paths["expenses"],
+        "r",
+        encoding="utf-8"
+    ) as expenses_file:
+        expense_rows = list(
+            csv.DictReader(expenses_file)
+        )
+
+    assert len(expense_rows) > 0
+    assert "category" in expense_rows[0]
+    assert "counterparty" in expense_rows[0]
+
+    with open(
+        output_paths["loans"],
+        "r",
+        encoding="utf-8"
+    ) as loans_file:
+        loan_rows = list(
+            csv.DictReader(loans_file)
+        )
+
+    assert len(loan_rows) == 4
+    assert "loan_id" in loan_rows[0]
+    assert "outstanding_balance" in loan_rows[0]
