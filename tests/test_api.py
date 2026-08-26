@@ -266,3 +266,53 @@ def test_loans_require_branch(client):
         "missing required parameters"
     )
     assert data["missing"] == ["branch"]
+
+def test_expenses_endpoint_returns_breakdown(client):
+    response = client.get(
+        "/api/expenses"
+        "?branch=Florence"
+        "&start=1420-01-01"
+        "&end=1420-12-31"
+    )
+
+    data = response.get_json()
+    breakdown = data["expense_breakdown"]
+
+    assert response.status_code == 200
+    assert data["branch"] == "Florence"
+    assert data["data_source"] == (
+        "development_fixture"
+    )
+    assert breakdown["total_expenses"] == "50000.00"
+    assert len(breakdown["categories"]) == 4
+    assert len(breakdown["top_counterparties"]) == 4
+
+def test_expenses_require_branch_and_dates(client):
+    response = client.get(
+        "/api/expenses?branch=Florence"
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert data["error"] == (
+        "missing required parameters"
+    )
+    assert data["missing"] == ["start", "end"]
+
+def test_expense_start_date_cannot_be_after_end_date(
+    client
+):
+    response = client.get(
+        "/api/expenses"
+        "?branch=Florence"
+        "&start=1421-01-01"
+        "&end=1420-01-01"
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert data["error"] == (
+        "start date cannot be after end date"
+    )

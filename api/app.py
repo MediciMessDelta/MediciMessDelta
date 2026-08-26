@@ -8,6 +8,7 @@ from api.kpi_service import get_kpi_summary
 from api.data_service import get_transaction_page
 from api.kpi_service import get_kpi_summary
 from api.loan_service import get_loan_portfolio
+from api.expense_service import get_expense_breakdown
 
 def create_app():
     app = Flask(__name__)
@@ -285,6 +286,69 @@ def create_app():
         result = get_loan_portfolio(
             branch=branch,
             status=status
+        )
+
+        return jsonify(result), 200
+
+    @app.get("/api/expenses")
+    def get_expenses():
+        branch = request.args.get("branch")
+        start = request.args.get("start")
+        end = request.args.get("end")
+
+        missing_parameters = []
+
+        if not branch:
+            missing_parameters.append("branch")
+
+        if not start:
+            missing_parameters.append("start")
+
+        if not end:
+            missing_parameters.append("end")
+
+        if missing_parameters:
+            return jsonify(
+                {
+                    "error": "missing required parameters",
+                    "missing": missing_parameters
+                }
+            ), 400
+
+        try:
+            start_date = datetime.strptime(
+                start,
+                "%Y-%m-%d"
+            )
+
+            end_date = datetime.strptime(
+                end,
+                "%Y-%m-%d"
+            )
+
+        except ValueError:
+            return jsonify(
+                {
+                    "error": (
+                        "start and end must use "
+                        "YYYY-MM-DD format"
+                    )
+                }
+            ), 400
+
+        if start_date > end_date:
+            return jsonify(
+                {
+                    "error": (
+                        "start date cannot be after end date"
+                    )
+                }
+            ), 400
+
+        result = get_expense_breakdown(
+            branch=branch,
+            start=start,
+            end=end
         )
 
         return jsonify(result), 200
