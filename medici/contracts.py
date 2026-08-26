@@ -69,6 +69,3 @@ class AlertRecord(BaseModel):
     description: str
     detected_at: datetime
     status: str
-
-
-
