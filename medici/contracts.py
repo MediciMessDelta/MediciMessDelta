@@ -29,6 +29,7 @@ class KPIResult(BaseModel):
     period: str
     period_start: date
     period_end: date
+    excluded_duplicate_count: int = 0
     total_cash_inflows: Decimal
     total_cash_outflows: Decimal
     net_cash_movement: Decimal
@@ -68,7 +69,6 @@ class AlertRecord(BaseModel):
     description: str
     detected_at: datetime
     status: str
-
 
 
 
