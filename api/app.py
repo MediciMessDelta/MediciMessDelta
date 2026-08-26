@@ -2,6 +2,7 @@ from datetime import datetime
 
 from flask import Flask, jsonify, request
 
+from api.alert_service import (acknowledge_alert,get_alerts)
 from api.cashflow_service import get_cashflow
 from api.data_service import get_transaction_page
 from api.kpi_service import get_kpi_summary
@@ -352,6 +353,151 @@ def create_app():
         )
 
         return jsonify(result), 200
+
+    @app.get("/api/alerts")
+    def get_alert_list():
+        branch = request.args.get("branch")
+        start = request.args.get("start")
+        end = request.args.get("end")
+        severity = request.args.get("severity")
+
+        if severity:
+            severity = severity.upper()
+
+            allowed_severities = [
+                "LOW",
+                "MEDIUM",
+                "HIGH"
+            ]
+
+            if severity not in allowed_severities:
+                return jsonify(
+                    {
+                        "error": (
+                            "severity must be LOW, "
+                            "MEDIUM, or HIGH"
+                        )
+                    }
+                ), 400
+
+        try:
+            start_date = (
+                datetime.strptime(start, "%Y-%m-%d")
+                if start
+                else None
+            )
+
+            end_date = (
+                datetime.strptime(end, "%Y-%m-%d")
+                if end
+                else None
+            )
+
+        except ValueError:
+            return jsonify(
+                {
+                    "error": (
+                        "start and end must use "
+                        "YYYY-MM-DD format"
+                    )
+                }
+            ), 400
+
+        if (
+            start_date
+            and end_date
+            and start_date > end_date
+        ):
+            return jsonify(
+                {
+                    "error": (
+                        "start date cannot be after end date"
+                    )
+                }
+            ), 400
+
+        result = get_alerts(
+            branch=branch,
+            start=start,
+            end=end,
+            severity=severity
+        )
+
+        return jsonify(result), 200
+
+    @app.post(
+        "/api/alerts/<alert_id>/acknowledge"
+    )
+    def acknowledge_alert_endpoint(alert_id):
+        request_body = request.get_json(
+            silent=True
+        )
+
+        if not isinstance(request_body, dict):
+            return jsonify(
+                {
+                    "error": (
+                        "request body must be "
+                        "a JSON object"
+                    )
+                }
+            ), 400
+
+        user_id = request_body.get("user_id")
+        note = request_body.get("note")
+
+        missing_fields = []
+
+        if not user_id:
+            missing_fields.append("user_id")
+
+        if not note:
+            missing_fields.append("note")
+
+        if missing_fields:
+            return jsonify(
+                {
+                    "error": "missing required fields",
+                    "missing": missing_fields
+                }
+            ), 400
+
+        result = acknowledge_alert(
+            alert_id=alert_id,
+            user_id=user_id,
+            note=note
+        )
+
+        if result["outcome"] == "not_found":
+            return jsonify(
+                {
+                    "error": "alert not found",
+                    "alert_id": alert_id
+                }
+            ), 404
+
+        if (
+            result["outcome"]
+            == "already_acknowledged"
+        ):
+            return jsonify(
+                {
+                    "error": (
+                        "alert has already been "
+                        "acknowledged"
+                    ),
+                    "alert": result["alert"]
+                }
+            ), 409
+
+        return jsonify(
+            {
+                "message": (
+                    "alert acknowledged successfully"
+                ),
+                "alert": result["alert"]
+            }
+        ), 200
     
 
     return app

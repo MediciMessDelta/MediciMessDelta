@@ -1,14 +1,19 @@
 import pytest
 
+from api.alert_service import reset_alert_fixture
 from api.app import create_app
 
 @pytest.fixture
 def client():
+    reset_alert_fixture()
+
     app = create_app()
     app.config["TESTING"] = True
 
     with app.test_client() as test_client:
         yield test_client
+
+    reset_alert_fixture()
 
 def test_health_endpoint(client):
     response = client.get("/api/health")
@@ -316,3 +321,139 @@ def test_expense_start_date_cannot_be_after_end_date(
     assert data["error"] == (
         "start date cannot be after end date"
     )
+
+def test_alerts_endpoint_returns_sorted_alerts(client):
+    response = client.get("/api/alerts")
+
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["data_source"] == (
+        "development_fixture"
+    )
+    assert data["total_alerts"] == 4
+    assert len(data["alerts"]) == 4
+
+    assert data["alerts"][0]["severity"] == "HIGH"
+    assert data["alerts"][-1]["severity"] == "LOW"
+
+def test_alerts_can_be_filtered(client):
+    response = client.get(
+        "/api/alerts"
+        "?branch=Florence"
+        "&severity=high"
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["total_alerts"] == 1
+    assert data["alerts"][0]["alert_id"] == (
+        "ALT-0001"
+    )
+    assert data["alerts"][0]["branch"] == "Florence"
+    assert data["alerts"][0]["severity"] == "HIGH"
+
+def test_alerts_can_be_filtered_by_date(client):
+    response = client.get(
+        "/api/alerts"
+        "?start=1420-05-01"
+        "&end=1420-08-01"
+    )
+
+    data = response.get_json()
+
+    alert_ids = [
+        alert["alert_id"]
+        for alert in data["alerts"]
+    ]
+
+    assert response.status_code == 200
+    assert data["total_alerts"] == 2
+    assert set(alert_ids) == {
+        "ALT-0002",
+        "ALT-0003"
+    }
+
+def test_alerts_reject_invalid_severity(client):
+    response = client.get(
+        "/api/alerts?severity=critical"
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert data["error"] == (
+        "severity must be LOW, MEDIUM, or HIGH"
+    )
+
+def test_alert_can_be_acknowledged(client):
+    response = client.post(
+        "/api/alerts/ALT-0001/acknowledge",
+        json={
+            "user_id": "matthew",
+            "note": "Reviewed the vendor transactions."
+        }
+    )
+
+    data = response.get_json()
+    alert = data["alert"]
+
+    assert response.status_code == 200
+    assert data["message"] == (
+        "alert acknowledged successfully"
+    )
+    assert alert["status"] == "ACKNOWLEDGED"
+    assert alert["acknowledged_by"] == "matthew"
+    assert alert["acknowledgement_note"] == (
+        "Reviewed the vendor transactions."
+    )
+    assert alert["acknowledged_at"] is not None
+
+    repeated_response = client.post(
+        "/api/alerts/ALT-0001/acknowledge",
+        json={
+            "user_id": "matthew",
+            "note": "Reviewed again."
+        }
+    )
+
+    repeated_data = repeated_response.get_json()
+
+    assert repeated_response.status_code == 409
+    assert repeated_data["error"] == (
+        "alert has already been acknowledged"
+    )
+
+def test_acknowledge_returns_404_for_missing_alert(
+    client
+):
+    response = client.post(
+        "/api/alerts/ALT-9999/acknowledge",
+        json={
+            "user_id": "matthew",
+            "note": "Review attempted."
+        }
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 404
+    assert data["error"] == "alert not found"
+    assert data["alert_id"] == "ALT-9999"
+
+def test_acknowledge_requires_user_and_note(client):
+    response = client.post(
+        "/api/alerts/ALT-0002/acknowledge",
+        json={
+            "user_id": "matthew"
+        }
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert data["error"] == (
+        "missing required fields"
+    )
+    assert data["missing"] == ["note"]
