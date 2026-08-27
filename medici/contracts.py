@@ -54,7 +54,7 @@ class KPIResult(BaseModel):
     trading_revenue: Decimal
     total_revenue: Decimal
     net_income: Decimal
-    net_income_margin: float
+    net_income_margin: float | None = None
 
 class AlertRecord(BaseModel):
     alert_id: int
