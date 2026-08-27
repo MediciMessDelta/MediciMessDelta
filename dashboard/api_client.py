@@ -101,3 +101,58 @@ def get_cashflow(
         "/api/cashflow",
         params=params
     )
+
+def get_loans(branch, status=None):
+    params = {
+        "branch": branch
+    }
+
+    if status:
+        params["status"] = status
+
+    return make_get_request(
+        "/api/loans",
+        params=params
+    )
+
+
+def get_expenses(branch, start, end):
+    params = {
+        "branch": branch,
+        "start": start,
+        "end": end
+    }
+
+    return make_get_request(
+        "/api/expenses",
+        params=params
+    )
+
+
+def get_alerts(
+    branch,
+    start=None,
+    end=None,
+    severity=None,
+    status=None
+):
+    params = {
+        "branch": branch
+    }
+
+    if start:
+        params["start"] = start
+
+    if end:
+        params["end"] = end
+
+    if severity:
+        params["severity"] = severity
+
+    if status:
+        params["status"] = status
+
+    return make_get_request(
+        "/api/alerts",
+        params=params
+    )
