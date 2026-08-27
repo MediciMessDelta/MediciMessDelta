@@ -20,8 +20,27 @@ def load_loan_fixture():
         return json.load(fixture_file)
 
 
-def get_loan_portfolio(branch, status=None):
+def get_loan_portfolio(
+    branch,
+    status=None,
+    start=None,
+    end=None,
+):
     loans = deepcopy(load_loan_fixture())
+
+    if start:
+        loans = [
+            loan
+            for loan in loans
+            if loan["issued_date"] >= start
+        ]
+
+    if end:
+        loans = [
+            loan
+            for loan in loans
+            if loan["issued_date"] <= end
+        ]
 
     if status:
         loans = [

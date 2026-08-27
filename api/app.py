@@ -275,6 +275,8 @@ def create_app():
     def get_loans():
         branch = request.args.get("branch")
         status = request.args.get("status")
+        start = request.args.get("start")
+        end = request.args.get("end")
 
         if not branch:
             return jsonify(
@@ -303,10 +305,48 @@ def create_app():
                     }
                 ), 400
 
+        try:
+            start_date = (
+                datetime.strptime(start, "%Y-%m-%d")
+                if start
+                else None
+            )
+
+            end_date = (
+                datetime.strptime(end, "%Y-%m-%d")
+                if end
+                else None
+            )
+
+        except ValueError:
+            return jsonify(
+                {
+                    "error": (
+                        "start and end must use "
+                        "YYYY-MM-DD format"
+                    )
+                }
+            ), 400
+
+        if (
+            start_date
+            and end_date
+            and start_date > end_date
+        ):
+            return jsonify(
+                {
+                    "error": (
+                        "start date cannot be after end date"
+                    )
+                }
+            ), 400
+
         result = get_loan_portfolio(
-            branch=branch,
-            status=status
-        )
+        branch=branch,
+        status=status,
+        start=start,
+        end=end,
+    )
 
         return jsonify(result), 200
 

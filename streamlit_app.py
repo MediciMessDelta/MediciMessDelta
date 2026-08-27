@@ -81,9 +81,11 @@ def load_cashflow(
     )
 
 @st.cache_data(ttl=60)
-def load_loans(branch, status=None):
+def load_loans(branch, start, end, status=None):
     return get_loans(
         branch=branch,
+        start=start,
+        end=end,
         status=status,
     )
 
@@ -348,7 +350,9 @@ if selected_branch != "All Branches":
 
     try:
         loans_result = load_loans(
-            branch=selected_branch
+        branch=selected_branch,
+        start=start_date.isoformat(),
+        end=end_date.isoformat(),
         )
 
         loans = loans_result["loans"]

@@ -2,7 +2,6 @@ import os
 
 import requests
 
-
 DEFAULT_API_URL = "http://127.0.0.1:5001"
 
 API_BASE_URL = os.getenv(
@@ -102,10 +101,16 @@ def get_cashflow(
         params=params
     )
 
-def get_loans(branch, status=None):
+def get_loans(branch, start=None, end=None, status=None):
     params = {
         "branch": branch
     }
+
+    if start:
+        params["start"] = start
+
+    if end:
+        params["end"] = end
 
     if status:
         params["status"] = status
