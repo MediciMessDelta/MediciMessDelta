@@ -782,3 +782,34 @@ def test_unknown_user_is_rejected(client):
     )
 
     assert response.status_code == 401
+def test_unauthenticated_user_cannot_access_branch(client):
+    response = client.get(
+        "/api/transactions"
+        "?branch=Florence"
+        "&page=1"
+        "&per_page=25"
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 401
+    assert data["error"] == "authentication required"
+
+
+@pytest.mark.parametrize(
+    "branch",
+    ["Florence", "Rome"],
+)
+def test_managing_director_can_access_each_branch(
+    client,
+    branch
+):
+    response = client.get(
+        "/api/transactions"
+        f"?branch={branch}"
+        "&page=1"
+        "&per_page=25"
+        "&username=director"
+    )
+
+    assert response.status_code == 200
