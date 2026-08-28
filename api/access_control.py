@@ -1,6 +1,5 @@
 from api.auth_service import load_user_fixture
 
-
 MANAGING_DIRECTOR = "MANAGING_DIRECTOR"
 BRANCH_USER = "BRANCH_USER"
 

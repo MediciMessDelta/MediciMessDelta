@@ -2,23 +2,123 @@ from datetime import datetime
 
 from flask import Flask, jsonify, request
 
+from api.access_control import can_access_branch
 from api.alert_service import acknowledge_alert, get_alerts
+from api.auth_service import authenticate_user, get_user
 from api.cashflow_service import get_cashflow
 from api.data_service import get_transaction_page
 from api.expense_service import get_expense_breakdown
 from api.kpi_service import get_kpi_summary
 from api.loan_service import get_loan_portfolio
-from api.access_control import (
-    BRANCH_USER,
-    MANAGING_DIRECTOR,
-    can_access_branch,
-    can_access_network,
-)
-from api.auth_service import authenticate_user
 
 
 def create_app():
     app = Flask(__name__)
+
+    def authorize_branch(username, branch):
+        if not username:
+            return jsonify(
+                {
+                    "error": "username is required"
+                }
+            ), 401
+
+        user = get_user(username)
+
+        if user is None:
+            return jsonify(
+                {
+                    "error": "unknown user"
+                }
+            ), 401
+
+        if not can_access_branch(user, branch):
+            return jsonify(
+                {
+                    "error": "user is not authorized for this branch"
+                }
+            ), 403
+
+        return None
+
+    def get_request_user():
+        username = request.headers.get("X-Username")
+
+        if not username:
+            return None
+
+        return get_user(username)
+
+    def check_branch_access(branch):
+        user = get_request_user()
+
+        if user is None:
+            return jsonify(
+                {
+                    "error": "authentication required"
+                }
+            ), 401
+
+        if not can_access_branch(user, branch):
+            return jsonify(
+                {
+                    "error": "forbidden",
+                    "message": (
+                        "user does not have access "
+                        "to this branch"
+                    ),
+                    "branch": branch,
+                }
+            ), 403
+
+        return None
+
+    def get_authenticated_user():
+        username = request.headers.get("X-Username")
+
+        if not username:
+            return None
+
+        for user in [
+            "director",
+            "florence_manager",
+            "rome_manager",
+        ]:
+            if user == username:
+                return authenticate_user(
+                    username=username,
+                    password={
+                        "director": "medici-director",
+                        "florence_manager": "medici-florence",
+                        "rome_manager": "medici-rome",
+                    }[username],
+                )
+
+        return None
+
+    def require_branch_access(branch):
+        user = get_authenticated_user()
+
+        if user is None:
+            return jsonify(
+                {
+                    "error": "authentication required"
+                }
+            ), 401
+
+        if not can_access_branch(user, branch):
+            return jsonify(
+                {
+                    "error": "forbidden",
+                    "message": (
+                        "user does not have access "
+                        "to this branch"
+                    ),
+                    "branch": branch,
+                }
+            ), 403
+
+        return None
 
     @app.post("/api/auth/login")
     def login():
@@ -99,6 +199,15 @@ def create_app():
         start = request.args.get("start")
         end = request.args.get("end")
         transaction_type = request.args.get("type")
+        username = request.args.get("username")
+
+        authorization_error = authorize_branch(
+            username,
+            branch,
+        )
+
+        if authorization_error:
+            return authorization_error
         
 
         if page < 1:

@@ -108,6 +108,7 @@ def test_transactions_can_be_filtered(client):
         "&end=1420-12-31"
         "&page=1"
         "&per_page=2"
+        "&username=director"
     )
 
     data = response.get_json()
@@ -124,9 +125,10 @@ def test_transactions_can_be_filtered(client):
 
 def test_start_date_cannot_be_after_end_date(client):
     response = client.get(
-        "/api/transactions"
+       "/api/transactions"
         "?start=1421-01-01"
         "&end=1420-01-01"
+        "&username=director"
     )
 
     data = response.get_json()
@@ -139,7 +141,7 @@ def test_start_date_cannot_be_after_end_date(client):
 
 def test_dates_require_correct_format(client):
     response = client.get(
-        "/api/transactions?start=01-01-1420"
+        "/api/transactions?start=01-01-1420&username=director"
     )
 
     data = response.get_json()
@@ -152,7 +154,7 @@ def test_dates_require_correct_format(client):
 
 def test_per_page_cannot_exceed_100(client):
     response = client.get(
-        "/api/transactions?per_page=101"
+        "/api/transactions?per_page=101&username=director"
     )
 
     data = response.get_json()
@@ -627,6 +629,7 @@ def test_serving_output_writer_creates_files(
             "?branch=Florence"
             "&page=1"
             "&per_page=25"
+            "&username=director"
         ),
         (
             "/api/kpis"
@@ -744,3 +747,50 @@ def test_login_requires_username_and_password(client):
     assert data["error"] == (
         "username and password are required"
     )
+
+def test_branch_user_can_access_own_branch(client):
+    response = client.get(
+        "/api/transactions"
+        "?branch=Florence"
+        "&page=1"
+        "&per_page=25"
+        "&username=florence_manager"
+    )
+
+    assert response.status_code == 200
+
+
+def test_branch_user_cannot_access_other_branch(client):
+    response = client.get(
+        "/api/transactions"
+        "?branch=Rome"
+        "&page=1"
+        "&per_page=25"
+        "&username=florence_manager"
+    )
+
+    assert response.status_code == 403
+
+
+def test_managing_director_can_access_any_branch(client):
+    response = client.get(
+        "/api/transactions"
+        "?branch=Rome"
+        "&page=1"
+        "&per_page=25"
+        "&username=director"
+    )
+
+    assert response.status_code == 200
+
+
+def test_unknown_user_is_rejected(client):
+    response = client.get(
+        "/api/transactions"
+        "?branch=Florence"
+        "&page=1"
+        "&per_page=25"
+        "&username=unknown_user"
+    )
+
+    assert response.status_code == 401
