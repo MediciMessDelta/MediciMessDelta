@@ -77,6 +77,9 @@ def create_app():
         username = request.headers.get("X-Username")
 
         if not username:
+            username = request.args.get("username")
+
+        if not username:
             return None
 
         return get_user(username)
@@ -184,12 +187,8 @@ def create_app():
         start = request.args.get("start")
         end = request.args.get("end")
         transaction_type = request.args.get("type")
-        username = request.args.get("username")
 
-        authorization_error = authorize_branch(
-            username,
-            branch,
-        )
+        authorization_error = require_branch_access(branch)
 
         if authorization_error:
             return authorization_error

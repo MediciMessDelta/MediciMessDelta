@@ -6,7 +6,6 @@ from api.access_control import (
     get_accessible_branches,
 )
 
-
 DIRECTOR = {
     "username": "director",
     "role": MANAGING_DIRECTOR,

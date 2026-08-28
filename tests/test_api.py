@@ -21,77 +21,77 @@ def client():
 
     reset_alert_fixture()
 
+
+def test_login_authenticates_managing_director(client):
+    response = client.post(
+        "/api/auth/login",
+        json={
+            "username": "director",
+            "password": "medici-director",
+        },
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["authenticated"] is True
+    assert data["user"]["username"] == "director"
+    assert data["user"]["role"] == "MANAGING_DIRECTOR"
+    assert data["user"]["branch"] is None
+    assert "password" not in data["user"]
+
+
+def test_login_authenticates_branch_user(client):
+    response = client.post(
+        "/api/auth/login",
+        json={
+            "username": "florence_manager",
+            "password": "medici-florence",
+        },
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["authenticated"] is True
+    assert data["user"]["username"] == "florence_manager"
+    assert data["user"]["role"] == "BRANCH_USER"
+    assert data["user"]["branch"] == "Florence"
+    assert "password" not in data["user"]
+
+
+def test_login_rejects_invalid_credentials(client):
+    response = client.post(
+        "/api/auth/login",
+        json={
+            "username": "director",
+            "password": "wrong-password",
+        },
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 401
+    assert data["error"] == "invalid username or password"
+
+
+def test_login_requires_credentials(client):
+    response = client.post(
+        "/api/auth/login",
+        json={
+            "username": "director",
+        },
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert data["error"] == (
+        "username and password are required"
+    )
+
+
 def test_health_endpoint(client):
-    def test_login_authenticates_managing_director(client):
-        response = client.post(
-            "/api/auth/login",
-            json={
-                "username": "director",
-                "password": "medici-director",
-            },
-        )
-
-        data = response.get_json()
-
-        assert response.status_code == 200
-        assert data["authenticated"] is True
-        assert data["user"]["username"] == "director"
-        assert data["user"]["role"] == "MANAGING_DIRECTOR"
-        assert data["user"]["branch"] is None
-        assert "password" not in data["user"]
-
-
-    def test_login_authenticates_branch_user(client):
-        response = client.post(
-            "/api/auth/login",
-            json={
-                "username": "florence_manager",
-                "password": "medici-florence",
-            },
-        )
-
-        data = response.get_json()
-
-        assert response.status_code == 200
-        assert data["authenticated"] is True
-        assert data["user"]["username"] == "florence_manager"
-        assert data["user"]["role"] == "BRANCH_USER"
-        assert data["user"]["branch"] == "Florence"
-        assert "password" not in data["user"]
-
-
-    def test_login_rejects_invalid_credentials(client):
-        response = client.post(
-            "/api/auth/login",
-            json={
-                "username": "director",
-                "password": "wrong-password",
-            },
-        )
-
-        data = response.get_json()
-
-        assert response.status_code == 401
-        assert data["error"] == "invalid username or password"
-
-
-    def test_login_requires_credentials(client):
-        response = client.post(
-            "/api/auth/login",
-            json={
-                "username": "director",
-            },
-        )
-
-        data = response.get_json()
-
-        assert response.status_code == 400
-        assert data["error"] == (
-            "username and password are required"
-        )
-
-
-
     response = client.get("/api/health")
     data = response.get_json()
 
@@ -107,8 +107,8 @@ def test_transactions_can_be_filtered(client):
         "&start=1420-01-01"
         "&end=1420-12-31"
         "&page=1"
-        "&per_page=2"
-        "&username=director"
+        "&per_page=2",
+        headers={"X-Username": "director"},
     )
 
     data = response.get_json()
@@ -127,8 +127,8 @@ def test_start_date_cannot_be_after_end_date(client):
     response = client.get(
        "/api/transactions"
         "?start=1421-01-01"
-        "&end=1420-01-01"
-        "&username=director"
+        "&end=1420-01-01",
+        headers={"X-Username": "director"},
     )
 
     data = response.get_json()
@@ -138,10 +138,10 @@ def test_start_date_cannot_be_after_end_date(client):
         "start date cannot be after end date"
     )
 
-
 def test_dates_require_correct_format(client):
     response = client.get(
-        "/api/transactions?start=01-01-1420&username=director"
+        "/api/transactions?start=01-01-1420",
+        headers={"X-Username": "director"},
     )
 
     data = response.get_json()
@@ -154,7 +154,8 @@ def test_dates_require_correct_format(client):
 
 def test_per_page_cannot_exceed_100(client):
     response = client.get(
-        "/api/transactions?per_page=101&username=director"
+        "/api/transactions?per_page=101",
+        headers={"X-Username": "director"},
     )
 
     data = response.get_json()
@@ -163,6 +164,7 @@ def test_per_page_cannot_exceed_100(client):
     assert data["error"] == (
         "per_page must be between 1 and 100"
     )
+
 
 @pytest.mark.parametrize(
     "query_string, expected_error",
@@ -717,20 +719,6 @@ def test_login_returns_branch_user(client):
     assert data["user"]["branch"] == "Florence"
     assert "password" not in data["user"]
 
-
-def test_login_rejects_invalid_credentials(client):
-    response = client.post(
-        "/api/auth/login",
-        json={
-            "username": "director",
-            "password": "wrong-password",
-        },
-    )
-
-    data = response.get_json()
-
-    assert response.status_code == 401
-    assert data["error"] == "invalid username or password"
 
 
 def test_login_requires_username_and_password(client):

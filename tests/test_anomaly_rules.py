@@ -1,5 +1,7 @@
-from medici.contracts import AlertRecord
 from datetime import datetime
+
+from medici.contracts import AlertRecord
+
 
 def test_alert_record_for_duplicate_transaction():
     """Sketches what firing Rule C on SAMPLE_TRANSACTIONS rows 1 and 8

@@ -1,6 +1,6 @@
+from medici.ingestion.dedup import flag_duplicates
 from medici.ingestion.loaders import load_csv, load_json, load_since
 from medici.ingestion.validation import validate_all_rows
-from medici.ingestion.dedup import flag_duplicates
 
 
 def test_csv_and_json_load_same_row_count():

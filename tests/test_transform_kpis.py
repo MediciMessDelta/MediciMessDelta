@@ -16,12 +16,12 @@ from decimal import Decimal
 
 import pytest
 
+from medici.ingestion.dedup import flag_duplicates
 from medici.ingestion.loaders import load_csv
 from medici.ingestion.validation import validate_all_rows
-from medici.ingestion.dedup import flag_duplicates
 from medici.transform.clean import to_cleaned_transactions
 from medici.transform.kpis import bucket_by_period, compute_kpis, period_bounds
-from tests.fixtures import SAMPLE_TRANSACTIONS, EXPECTED_FLORENCE_1420_01
+from tests.fixtures import EXPECTED_FLORENCE_1420_01, SAMPLE_TRANSACTIONS
 
 
 def test_bucket_by_period_separates_branch_and_period():
