@@ -5,16 +5,40 @@ from datetime import date, timedelta
 # in tests/fixtures.py.
 
 def _txn(id, day, branch, type_, counterparty, debit_account,
-         debit_amount, credit_account="cash", **kwargs):
-    """Small helper so every generator below doesn't repeat year/month/
-    quarter/fiscal_year/currency by hand — those are always the same
-    for this exercise (January 1420)."""
+         debit_amount, credit_account="cash", month=1, **kwargs):
+    """Small helper so every generator below doesn't repeat year/
+    quarter/fiscal_year/currency by hand. Defaults to January 1420,
+    like before, but now takes an optional `month` so generators that
+    genuinely need to spread transactions across several calendar
+    months (Rule E) can do that correctly instead of everything
+    silently landing in January.
+
+    BUG FIX: frequency_outlier_trigger_transactions and
+    frequency_outlier_non_trigger_transactions below were written with
+    a `month` loop variable that was never actually passed into _txn —
+    every transaction they generated landed on date(1420, 1, day)
+    regardless, so despite the comments describing "4 baseline months"
+    and "a 5th month", all of it was really one single period
+    (1420-01). Adding this parameter and threading it through those
+    two functions (only) fixes that without touching any of the other
+    rules' fixtures, which were all correctly written to be
+    single-period on purpose.
+    """
+    if month <= 3:
+        quarter = "Q1"
+    elif month <= 6:
+        quarter = "Q2"
+    elif month <= 9:
+        quarter = "Q3"
+    else:
+        quarter = "Q4"
+
     return CleanedTransaction(
-        id=id, date=date(1420, 1, day), branch=branch, type=type_,
+        id=id, date=date(1420, month, day), branch=branch, type=type_,
         counterparty=counterparty, description="generated fixture",
         debit_account=debit_account, debit_amount=debit_amount,
         credit_account=credit_account, credit_amount=debit_amount,
-        currency="florin", year=1420, month=1, quarter="Q1",
+        currency="florin", year=1420, month=month, quarter=quarter,
         fiscal_year=1420, debit_account_type="EXPENSE",
         credit_account_type="ASSET", is_duplicate=False,
         **kwargs,
@@ -111,11 +135,13 @@ def frequency_outlier_trigger_transactions():
     for month in range(1, 5):
         for _ in range(2):
             txns.append(_txn(txn_id, 5, "Florence", "operating_expense",
-                              "Baseline Vendor", "supplies_expense", 80))
+                              "Baseline Vendor", "supplies_expense", 80,
+                              month=month))
             txn_id += 1
     for _ in range(15):
         txns.append(_txn(txn_id, 20, "Florence", "operating_expense",
-                          "Baseline Vendor", "supplies_expense", 80))
+                          "Baseline Vendor", "supplies_expense", 80,
+                          month=5))
         txn_id += 1
     return txns
 
@@ -127,7 +153,8 @@ def frequency_outlier_non_trigger_transactions():
     for month in range(1, 6):
         for _ in range(2):
             txns.append(_txn(txn_id, 5, "Florence", "operating_expense",
-                              "Steady Vendor", "supplies_expense", 80))
+                              "Steady Vendor", "supplies_expense", 80,
+                              month=month))
             txn_id += 1
     return txns
 
