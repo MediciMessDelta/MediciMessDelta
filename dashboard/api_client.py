@@ -14,14 +14,20 @@ class APIClientError(Exception):
     pass
 
 
-def make_get_request(endpoint, params=None):
+def make_get_request(endpoint, params=None, username=None):
     url = f"{API_BASE_URL}{endpoint}"
+
+    headers = {}
+
+    if username:
+        headers["X-Username"] = username
 
     try:
         response = requests.get(
             url,
             params=params,
-            timeout=10
+            headers=headers,
+            timeout=10,
         )
 
         response.raise_for_status()
@@ -50,7 +56,8 @@ def get_transactions(
     end,
     page=1,
     per_page=100,
-    transaction_type=None
+    transaction_type=None,
+    username=None
 ):
     params = {
         "start": str(start),
@@ -67,19 +74,21 @@ def get_transactions(
 
     return make_get_request(
         "/api/transactions",
-        params=params
+        params=params,
+        username=username
     )
 
-def get_kpis(branch, start, end):
+def get_kpis(branch, start, end, username=None):
     params = {
         "branch": branch,
         "start": start,
-        "end": end
+        "end": end,
     }
 
     return make_get_request(
         "/api/kpis",
-        params=params
+        params=params,
+        username=username
     )
 
 
@@ -87,7 +96,8 @@ def get_cashflow(
     branch,
     start,
     end,
-    granularity="monthly"
+    granularity="monthly",
+    username=None
 ):
     params = {
         "branch": branch,
@@ -98,10 +108,11 @@ def get_cashflow(
 
     return make_get_request(
         "/api/cashflow",
-        params=params
+        params=params,
+        username=username
     )
 
-def get_loans(branch, start=None, end=None, status=None):
+def get_loans(branch, start=None, end=None, status=None, username=None):
     params = {
         "branch": branch
     }
@@ -117,11 +128,12 @@ def get_loans(branch, start=None, end=None, status=None):
 
     return make_get_request(
         "/api/loans",
-        params=params
+        params=params,
+        username=username
     )
 
 
-def get_expenses(branch, start, end):
+def get_expenses(branch, start, end, username=None):
     params = {
         "branch": branch,
         "start": start,
@@ -130,7 +142,8 @@ def get_expenses(branch, start, end):
 
     return make_get_request(
         "/api/expenses",
-        params=params
+        params=params,
+        username=username
     )
 
 
@@ -139,7 +152,8 @@ def get_alerts(
     start=None,
     end=None,
     severity=None,
-    status=None
+    status=None,
+    username=None
 ):
     params = {
         "branch": branch
@@ -159,5 +173,6 @@ def get_alerts(
 
     return make_get_request(
         "/api/alerts",
-        params=params
+        params=params,
+        username=username
     )

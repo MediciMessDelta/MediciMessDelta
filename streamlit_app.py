@@ -189,6 +189,7 @@ def load_transaction_page(
     end,
     page,
     per_page,
+    username,
 ):
     return get_transactions(
         branch=branch,
@@ -196,14 +197,16 @@ def load_transaction_page(
         end=end,
         page=page,
         per_page=per_page,
+        username=username
     )
 
 @st.cache_data(ttl=60)
-def load_kpis(branch, start, end):
+def load_kpis(branch, start, end, username):
     return get_kpis(
         branch=branch,
         start=start,
         end=end,
+        username=username
     )
 
 
@@ -211,6 +214,7 @@ def load_cashflow(
     branch,
     start,
     end,
+    username,
     granularity="monthly",
 ):
     return get_cashflow(
@@ -218,24 +222,27 @@ def load_cashflow(
         start=start,
         end=end,
         granularity=granularity,
+        username=username
     )
 
 @st.cache_data(ttl=60)
-def load_loans(branch, start, end, status=None):
+def load_loans(branch, start, end, username, status=None,):
     return get_loans(
         branch=branch,
         start=start,
         end=end,
         status=status,
+        username=username
     )
 
 
 @st.cache_data(ttl=60)
-def load_expenses(branch, start, end):
+def load_expenses(branch, start, end, username):
     return get_expenses(
         branch=branch,
         start=start,
         end=end,
+        username=username
     )
 
 
@@ -246,6 +253,7 @@ def load_alerts(
     end=None,
     severity=None,
     status=None,
+    username=None
 ):
     return get_alerts(
         branch=branch,
@@ -253,10 +261,11 @@ def load_alerts(
         end=end,
         severity=severity,
         status=status,
+        username=username
     )
 
 @st.cache_data(ttl=60)
-def load_bills(branch, start, end):
+def load_bills(branch, start, end, username):
     return get_transactions(
         branch=branch,
         start=start,
@@ -264,6 +273,7 @@ def load_bills(branch, start, end):
         page=1,
         per_page=100,
         transaction_type="bill_of_exchange",
+        username=username
     )
 
 def filter_transactions(transactions_df, search_term):
@@ -300,6 +310,10 @@ def filter_transactions(transactions_df, search_term):
 
 
 def main():
+    user = st.session_state.authenticated_user
+    username = user["username"]
+
+
     st.caption(
         "Operations & Financial Intelligence Dashboard"
     )
@@ -341,10 +355,31 @@ def main():
         "Branch and date filters apply across the dashboard."
     )
 
+    user = st.session_state.authenticated_user
+    username = user["username"]
+    role = user["role"]
+
+    if role == "MANAGING_DIRECTOR":
+        available_branches = ["All Branches"] + BRANCHES
+    else:
+        available_branches = [user["branch"]]
+
     selected_branch = st.sidebar.selectbox(
         "Select a branch",
-        ["All Branches"] + BRANCHES,
+        available_branches,
     )
+
+    st.sidebar.markdown(
+        f"**Signed in:** {user['username']}"
+    )
+
+    st.sidebar.caption(
+        f"Role: {role.replace('_', ' ').title()}"
+    )
+
+    if st.sidebar.button("Sign Out"):
+        st.session_state.authenticated_user = None
+        st.rerun()
 
     start_date = st.sidebar.date_input(
         "Start date",
@@ -369,12 +404,13 @@ def main():
 
     try:
         transaction_result = load_transaction_page(
-            branch=selected_branch,
-            start=start_date,
-            end=end_date,
-            page=1,
-            per_page=100,
-        )
+        branch=selected_branch,
+        start=start_date,
+        end=end_date,
+        page=1,
+        per_page=100,
+        username=username,
+    )
 
     except APIClientError:
         st.error(
@@ -430,6 +466,7 @@ def main():
                 branch=selected_branch,
                 start=start_date.isoformat(),
                 end=end_date.isoformat(),
+                username=username
             )
 
             kpis = kpi_result["kpis"]
@@ -495,6 +532,7 @@ def main():
                 start=start_date.isoformat(),
                 end=end_date.isoformat(),
                 granularity="monthly",
+                username=username
             )
 
             cashflow_df = pd.DataFrame(
@@ -539,6 +577,7 @@ def main():
             branch=selected_branch,
             start=start_date.isoformat(),
             end=end_date.isoformat(),
+            username=username
             )
 
             loans = loans_result["loans"]
@@ -642,6 +681,7 @@ def main():
                 branch=selected_branch,
                 start=start_date.isoformat(),
                 end=end_date.isoformat(),
+                username=username
             )
 
             expense_breakdown = expenses_result[
@@ -714,6 +754,7 @@ def main():
                 branch=selected_branch,
                 start=start_date.isoformat(),
                 end=end_date.isoformat(),
+                username=username
             )
 
             alerts = alerts_result["alerts"]
@@ -783,6 +824,7 @@ def main():
                 branch=selected_branch,
                 start=start_date.isoformat(),
                 end=end_date.isoformat(),
+                username=username
             )
 
             bills = bills_result["transactions"]
