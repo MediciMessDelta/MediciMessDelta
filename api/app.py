@@ -79,22 +79,7 @@ def create_app():
         if not username:
             return None
 
-        for user in [
-            "director",
-            "florence_manager",
-            "rome_manager",
-        ]:
-            if user == username:
-                return authenticate_user(
-                    username=username,
-                    password={
-                        "director": "medici-director",
-                        "florence_manager": "medici-florence",
-                        "rome_manager": "medici-rome",
-                    }[username],
-                )
-
-        return None
+        return get_user(username)
 
     def require_branch_access(branch):
         user = get_authenticated_user()

@@ -12,6 +12,7 @@ from dashboard.api_client import (
     get_kpis,
     get_loans,
     get_transactions,
+    login,
 )
 
 BRANCHES = [
@@ -35,6 +36,9 @@ st.set_page_config(
     page_icon="🏦",
     layout="wide",
 )
+
+if "authenticated_user" not in st.session_state:
+    st.session_state.authenticated_user = None
 
 st.image(
     "assets/medici_bank_logo.png",
@@ -311,8 +315,36 @@ def filter_transactions(transactions_df, search_term):
 
 def main():
     user = st.session_state.authenticated_user
-    username = user["username"]
 
+    if user is None:
+        st.subheader("Medici Bank Login")
+
+        with st.form("login_form"):
+            username = st.text_input("Username")
+            password = st.text_input(
+                "Password",
+                type="password",
+            )
+            submitted = st.form_submit_button("Sign In")
+
+        if submitted:
+            try:
+                login_result = login(
+                    username=username,
+                    password=password,
+                )
+
+                st.session_state.authenticated_user = (
+                    login_result["user"]
+                )
+                st.rerun()
+
+            except APIClientError:
+                st.error("Invalid username or password.")
+
+        st.stop()
+
+    username = user["username"]
 
     st.caption(
         "Operations & Financial Intelligence Dashboard"

@@ -49,6 +49,37 @@ def make_get_request(endpoint, params=None, username=None):
 def check_api_health():
     return make_get_request("/api/health")
 
+def login(username, password):
+    url = f"{API_BASE_URL}/api/auth/login"
+
+    try:
+        response = requests.post(
+            url,
+            json={
+                "username": username,
+                "password": password,
+            },
+            timeout=10,
+        )
+
+        if response.status_code == 401:
+            return None
+
+        response.raise_for_status()
+
+    except requests.RequestException as error:
+        raise APIClientError(
+            f"Unable to authenticate with {url}"
+        ) from error
+
+    try:
+        return response.json()
+
+    except ValueError as error:
+        raise APIClientError(
+            f"The API returned invalid JSON from {url}"
+        ) from error
+
 
 def get_transactions(
     branch,
@@ -176,3 +207,31 @@ def get_alerts(
         params=params,
         username=username
     )
+
+def login_user(username, password):
+    url = f"{API_BASE_URL}/api/auth/login"
+
+    try:
+        response = requests.post(
+            url,
+            json={
+                "username": username,
+                "password": password,
+            },
+            timeout=10,
+        )
+
+        response.raise_for_status()
+
+    except requests.RequestException as error:
+        raise APIClientError(
+            f"Unable to authenticate with {url}"
+        ) from error
+
+    try:
+        return response.json()
+
+    except ValueError as error:
+        raise APIClientError(
+            f"The API returned invalid JSON from {url}"
+        ) from error
