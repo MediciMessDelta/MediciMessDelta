@@ -8,10 +8,50 @@ from api.data_service import get_transaction_page
 from api.expense_service import get_expense_breakdown
 from api.kpi_service import get_kpi_summary
 from api.loan_service import get_loan_portfolio
+from api.access_control import (
+    BRANCH_USER,
+    MANAGING_DIRECTOR,
+    can_access_branch,
+    can_access_network,
+)
+from api.auth_service import authenticate_user
 
 
 def create_app():
     app = Flask(__name__)
+
+    @app.post("/api/auth/login")
+    def login():
+        data = request.get_json(silent=True) or {}
+
+        username = data.get("username")
+        password = data.get("password")
+
+        if not username or not password:
+            return jsonify(
+                {
+                    "error": "username and password are required"
+                }
+            ), 400
+
+        user = authenticate_user(
+            username=username,
+            password=password,
+        )
+
+        if user is None:
+            return jsonify(
+                {
+                    "error": "invalid username or password"
+                }
+            ), 401
+
+        return jsonify(
+            {
+                "authenticated": True,
+                "user": user,
+            }
+        ), 200
 
     @app.get("/api/health")
     def health():

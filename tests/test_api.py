@@ -22,6 +22,76 @@ def client():
     reset_alert_fixture()
 
 def test_health_endpoint(client):
+    def test_login_authenticates_managing_director(client):
+        response = client.post(
+            "/api/auth/login",
+            json={
+                "username": "director",
+                "password": "medici-director",
+            },
+        )
+
+        data = response.get_json()
+
+        assert response.status_code == 200
+        assert data["authenticated"] is True
+        assert data["user"]["username"] == "director"
+        assert data["user"]["role"] == "MANAGING_DIRECTOR"
+        assert data["user"]["branch"] is None
+        assert "password" not in data["user"]
+
+
+    def test_login_authenticates_branch_user(client):
+        response = client.post(
+            "/api/auth/login",
+            json={
+                "username": "florence_manager",
+                "password": "medici-florence",
+            },
+        )
+
+        data = response.get_json()
+
+        assert response.status_code == 200
+        assert data["authenticated"] is True
+        assert data["user"]["username"] == "florence_manager"
+        assert data["user"]["role"] == "BRANCH_USER"
+        assert data["user"]["branch"] == "Florence"
+        assert "password" not in data["user"]
+
+
+    def test_login_rejects_invalid_credentials(client):
+        response = client.post(
+            "/api/auth/login",
+            json={
+                "username": "director",
+                "password": "wrong-password",
+            },
+        )
+
+        data = response.get_json()
+
+        assert response.status_code == 401
+        assert data["error"] == "invalid username or password"
+
+
+    def test_login_requires_credentials(client):
+        response = client.post(
+            "/api/auth/login",
+            json={
+                "username": "director",
+            },
+        )
+
+        data = response.get_json()
+
+        assert response.status_code == 400
+        assert data["error"] == (
+            "username and password are required"
+        )
+
+
+
     response = client.get("/api/health")
     data = response.get_json()
 
@@ -605,4 +675,72 @@ def test_get_endpoints_respond_under_500ms(
 
     assert elapsed_time < 0.5, (
         f"{url} took {elapsed_time:.3f} seconds"
+    )
+
+def test_login_returns_managing_director(client):
+    response = client.post(
+        "/api/auth/login",
+        json={
+            "username": "director",
+            "password": "medici-director",
+        },
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["authenticated"] is True
+    assert data["user"]["username"] == "director"
+    assert data["user"]["role"] == "MANAGING_DIRECTOR"
+    assert data["user"]["branch"] is None
+    assert "password" not in data["user"]
+
+
+def test_login_returns_branch_user(client):
+    response = client.post(
+        "/api/auth/login",
+        json={
+            "username": "florence_manager",
+            "password": "medici-florence",
+        },
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 200
+    assert data["authenticated"] is True
+    assert data["user"]["username"] == "florence_manager"
+    assert data["user"]["role"] == "BRANCH_USER"
+    assert data["user"]["branch"] == "Florence"
+    assert "password" not in data["user"]
+
+
+def test_login_rejects_invalid_credentials(client):
+    response = client.post(
+        "/api/auth/login",
+        json={
+            "username": "director",
+            "password": "wrong-password",
+        },
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 401
+    assert data["error"] == "invalid username or password"
+
+
+def test_login_requires_username_and_password(client):
+    response = client.post(
+        "/api/auth/login",
+        json={
+            "username": "director",
+        },
+    )
+
+    data = response.get_json()
+
+    assert response.status_code == 400
+    assert data["error"] == (
+        "username and password are required"
     )
