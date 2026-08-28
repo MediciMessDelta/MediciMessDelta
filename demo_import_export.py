@@ -13,7 +13,10 @@ from decimal import Decimal
 from datetime import date
 
 # Import the banking system
-exec(open('medici-banking.py').read())
+#exec(open('medici-banking.py').read())
+
+# Import the banking system by MCC
+from medici.accounting import Ledger, Account, AccountType, TransactionEntry, Transaction
 
 
 def demo_export():
