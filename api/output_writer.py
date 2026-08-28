@@ -1,5 +1,6 @@
 import csv
 import json
+from decimal import Decimal
 from pathlib import Path
 
 from api.alert_service import get_alerts
@@ -24,6 +25,14 @@ def create_branch_slug(branch):
 
 
 def write_json_file(file_path, data):
+    def serialize_decimal(value):
+        if isinstance(value, Decimal):
+            return float(value)
+        raise TypeError(
+            f"Object of type {type(value).__name__} "
+            "is not JSON serializable"
+        )
+
     with open(
         file_path,
         "w",
@@ -32,7 +41,8 @@ def write_json_file(file_path, data):
         json.dump(
             data,
             output_file,
-            indent=2
+            indent=2,
+            default=serialize_decimal
         )
 
 
