@@ -36,6 +36,146 @@ st.set_page_config(
     layout="wide",
 )
 
+st.image(
+    "assets/medici_bank_logo.png",
+    width=700,
+)
+
+st.markdown(
+    """
+    <style>
+        :root {
+            --medici-navy: #10233f;
+            --medici-blue: #1769aa;
+            --medici-gold: #b08d3c;
+            --medici-bg: #f4f6f8;
+            --medici-surface: #ffffff;
+            --medici-text: #17212b;
+            --medici-muted: #667085;
+            --medici-border: #d9dee5;
+        }
+
+        .stApp {
+            background-color: var(--medici-bg);
+            color: var(--medici-text);
+        }
+
+        .block-container {
+            max-width: 1500px;
+            padding-top: 2rem;
+            padding-bottom: 3rem;
+        }
+
+        /* Main title */
+        h1 {
+            color: var(--medici-navy);
+            font-size: 2.35rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.15rem;
+        }
+
+        h2 {
+            color: var(--medici-navy);
+            font-size: 1.45rem;
+            font-weight: 650;
+            border-bottom: 2px solid var(--medici-gold);
+            padding-bottom: 0.45rem;
+            margin-top: 2rem;
+        }
+
+        h3 {
+            color: var(--medici-navy);
+        }
+
+        /* Header accent */
+        .block-container > div:first-child {
+            border-top: 4px solid var(--medici-navy);
+            padding-top: 0.75rem;
+        }
+
+        /* Metric cards */
+        [data-testid="stMetric"] {
+            background-color: var(--medici-surface);
+            border: 1px solid var(--medici-border);
+            border-left: 4px solid var(--medici-blue);
+            border-radius: 0.35rem;
+            padding: 1rem 1.1rem;
+            box-shadow: 0 1px 3px rgba(16, 35, 63, 0.08);
+        }
+
+        [data-testid="stMetricLabel"] {
+            color: var(--medici-muted);
+            font-weight: 600;
+        }
+
+        [data-testid="stMetricValue"] {
+            color: var(--medici-navy);
+            font-weight: 700;
+        }
+
+        /* Sidebar */
+        [data-testid="stSidebar"] {
+            background-color: var(--medici-navy);
+        }
+
+        [data-testid="stSidebar"] * {
+            color: #ffffff;
+        }
+
+        [data-testid="stSidebar"] label {
+            font-weight: 600;
+        }
+
+        /* Sidebar inputs */
+        [data-testid="stSidebar"] [data-baseweb="select"] > div {
+            background-color: #ffffff;
+            color: var(--medici-text);
+            border-radius: 0.3rem;
+        }
+
+        [data-testid="stSidebar"] input {
+            background-color: #ffffff;
+            color: var(--medici-text);
+        }
+
+        /* Status messages */
+        [data-testid="stAlert"] {
+            border-radius: 0.35rem;
+        }
+
+        /* Tables */
+        [data-testid="stDataFrame"] {
+            border: 1px solid var(--medici-border);
+            border-radius: 0.35rem;
+            background-color: var(--medici-surface);
+        }
+
+        /* Search box */
+        [data-testid="stTextInput"] input {
+            border: 1px solid var(--medici-border);
+            border-radius: 0.35rem;
+        }
+
+        [data-testid="stTextInput"] input:focus {
+            border-color: var(--medici-blue);
+            box-shadow: 0 0 0 1px var(--medici-blue);
+        }
+
+        /* Caption text */
+        .stCaption {
+            color: var(--medici-muted);
+        }
+
+        /* Horizontal spacing between sections */
+        div[data-testid="stVerticalBlock"] > div {
+            gap: 0.65rem;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 @st.cache_data(ttl=30)
 def load_api_health():
@@ -126,11 +266,46 @@ def load_bills(branch, start, end):
         transaction_type="bill_of_exchange",
     )
 
+def filter_transactions(transactions_df, search_term):
+    if transactions_df.empty or not search_term:
+        return transactions_df
 
-st.title("Medici Bank Operations Dashboard")
+    search_term = search_term.casefold()
 
-st.write(
-    "Explore historical Medici Bank transactions "
+    searchable_columns = [
+        "id",
+        "counterparty",
+        "description",
+        "debit_account",
+        "credit_account",
+        "type",
+    ]
+
+    existing_columns = [
+        column
+        for column in searchable_columns
+        if column in transactions_df.columns
+    ]
+
+    search_mask = transactions_df[
+        existing_columns
+    ].astype(str).apply(
+        lambda column: column.str.casefold().str.contains(
+            search_term,
+            na=False,
+        )
+    ).any(axis=1)
+
+    return transactions_df[search_mask]
+
+
+st.caption(
+    "Operations & Financial Intelligence Dashboard"
+)
+
+st.markdown(
+    "Historical banking operations, financial performance, "
+    "loan activity, expenses, alerts, and transaction intelligence "
     "from 1390 through 1440."
 )
 
@@ -153,7 +328,17 @@ if health_data["status"] != "healthy":
 
 st.success("Connected to the MediciMess API.")
 
-st.sidebar.header("Dashboard Filters")
+st.sidebar.markdown(
+    "## MEDICI BANK"
+)
+
+st.sidebar.markdown(
+    "### Dashboard Controls"
+)
+
+st.sidebar.caption(
+    "Branch and date filters apply across the dashboard."
+)
 
 selected_branch = st.sidebar.selectbox(
     "Select a branch",
@@ -436,7 +621,7 @@ if selected_branch != "All Branches":
                         "status",
                     ]
                 ],
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
 
@@ -500,7 +685,7 @@ if selected_branch != "All Branches":
                             "transaction_count",
                         ]
                     ],
-                    use_container_width=True,
+                    width="stretch",
                     hide_index=True,
                 )
 
@@ -576,7 +761,7 @@ if selected_branch != "All Branches":
                         "rule_code",
                     ]
                 ],
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
 
@@ -679,7 +864,7 @@ if selected_branch != "All Branches":
                         "description",
                     ]
                 ],
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
 
@@ -695,21 +880,40 @@ if selected_branch != "All Branches":
             "from the API."
         )
 
-st.subheader("Transaction Preview")
+st.subheader("Transaction Ledger")
 
-if transactions_df.empty:
+search_term = st.text_input(
+    "Search transactions",
+    placeholder=(
+        "Search by transaction ID, counterparty, "
+        "description, account, or type..."
+    ),
+)
+
+ledger_df = filter_transactions(
+    transactions_df,
+    search_term,
+)
+
+if search_term:
+    st.caption(
+        f"Showing {len(ledger_df):,} transactions "
+        f"matching '{search_term}'."
+    )
+else:
+    st.caption(
+        f"Showing {len(ledger_df):,} transactions "
+        "from the selected filters."
+    )
+
+if ledger_df.empty:
     st.warning(
         "No transactions match the selected filters."
     )
 
 else:
-    st.caption(
-        "Showing the first 100 matching transactions. "
-        "Interactive pagination will be added next."
-    )
-
     st.dataframe(
-        transactions_df,
-        use_container_width=True,
+        ledger_df,
+        width="stretch",
         hide_index=True,
     )
