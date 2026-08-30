@@ -1,5 +1,6 @@
+from datetime import date
+
 from medici.contracts import CleanedTransaction
-from datetime import date, timedelta
 
 # Rows here start at id=100 so they never collide with SAMPLE_TRANSACTIONS (ids 1-9)
 # in tests/fixtures.py.

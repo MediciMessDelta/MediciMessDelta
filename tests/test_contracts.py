@@ -1,5 +1,7 @@
-from medici.contracts import CleanedTransaction
 from datetime import date
+
+from medici.contracts import CleanedTransaction
+
 
 def test_cleaned_transaction_accepts_valid_data():
     t = CleanedTransaction(

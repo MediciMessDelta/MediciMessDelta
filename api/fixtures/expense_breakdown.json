@@ -1,0 +1,93 @@
+{
+  "total_expenses": "50000.00",
+  "categories": [
+    {
+      "category": "Wages",
+      "transaction_count": 45,
+      "total_amount": "20000.00",
+      "percentage_of_expenses": "0.40",
+      "counterparties": [
+        {
+          "name": "Florence Branch Employees",
+          "transaction_count": 30,
+          "total_amount": "15000.00"
+        },
+        {
+          "name": "Temporary Banking Clerks",
+          "transaction_count": 15,
+          "total_amount": "5000.00"
+        }
+      ]
+    },
+    {
+      "category": "Rent",
+      "transaction_count": 12,
+      "total_amount": "12500.00",
+      "percentage_of_expenses": "0.25",
+      "counterparties": [
+        {
+          "name": "Palazzo Medici",
+          "transaction_count": 12,
+          "total_amount": "12500.00"
+        }
+      ]
+    },
+    {
+      "category": "Supplies",
+      "transaction_count": 24,
+      "total_amount": "10000.00",
+      "percentage_of_expenses": "0.20",
+      "counterparties": [
+        {
+          "name": "Florentine Paper Guild",
+          "transaction_count": 14,
+          "total_amount": "6000.00"
+        },
+        {
+          "name": "Tuscan Ink Merchant",
+          "transaction_count": 10,
+          "total_amount": "4000.00"
+        }
+      ]
+    },
+    {
+      "category": "Security",
+      "transaction_count": 10,
+      "total_amount": "7500.00",
+      "percentage_of_expenses": "0.15",
+      "counterparties": [
+        {
+          "name": "Florentine Guard Company",
+          "transaction_count": 10,
+          "total_amount": "7500.00"
+        }
+      ]
+    }
+  ],
+  "top_counterparties": [
+    {
+      "name": "Florence Branch Employees",
+      "category": "Wages",
+      "transaction_count": 30,
+      "total_amount": "15000.00"
+    },
+    {
+      "name": "Palazzo Medici",
+      "category": "Rent",
+      "transaction_count": 12,
+      "total_amount": "12500.00"
+    },
+    {
+      "name": "Florentine Guard Company",
+      "category": "Security",
+      "transaction_count": 10,
+      "total_amount": "7500.00"
+    },
+    {
+      "name": "Florentine Paper Guild",
+      "category": "Supplies",
+      "transaction_count": 14,
+      "total_amount": "6000.00"
+    }
+  ]
+}

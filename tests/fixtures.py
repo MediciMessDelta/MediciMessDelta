@@ -1,5 +1,6 @@
-from medici.contracts import CleanedTransaction
 from datetime import date
+
+from medici.contracts import CleanedTransaction
 
 SAMPLE_TRANSACTIONS = [
     # 1. Florence — deposit

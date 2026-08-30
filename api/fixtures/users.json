@@ -1,0 +1,20 @@
+[
+  {
+    "username": "director",
+    "password": "medici-director",
+    "role": "MANAGING_DIRECTOR",
+    "branch": null
+  },
+  {
+    "username": "florence_manager",
+    "password": "medici-florence",
+    "role": "BRANCH_USER",
+    "branch": "Florence"
+  },
+  {
+    "username": "rome_manager",
+    "password": "medici-rome",
+    "role": "BRANCH_USER",
+    "branch": "Rome"
+  }
+]
