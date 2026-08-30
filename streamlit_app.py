@@ -155,10 +155,22 @@ st.markdown(
             background-color: var(--medici-surface);
         }
 
-        /* Search box */
+        /* Text inputs */
         [data-testid="stTextInput"] input {
+            background-color: #ffffff;
+            color: var(--medici-text);
             border: 1px solid var(--medici-border);
             border-radius: 0.35rem;
+        }
+
+        [data-testid="stTextInput"] input::placeholder {
+            color: var(--medici-muted);
+            opacity: 1;
+        }
+
+        [data-testid="stTextInput"] input:focus {
+            border-color: var(--medici-blue);
+            box-shadow: 0 0 0 1px var(--medici-blue);
         }
 
         [data-testid="stTextInput"] input:focus {
