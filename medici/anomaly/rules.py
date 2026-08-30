@@ -32,6 +32,7 @@ from decimal import Decimal
 
 from medici.transform.kpis import period_key
 
+
 # Benford's Law: in most naturally-occurring numeric data, leading
 # digit d (1-9) shows up with probability log10(1 + 1/d) — a "1" about
 # 30% of the time, a "9" only about 5%. Precomputed once here.
@@ -86,30 +87,25 @@ def rule_a_benford_deviation(cleaned_transactions, mad_threshold=0.015, minimum_
         for digit in leading_digits:
             observed_counts[digit] += 1
 
-        mad = (
-            sum(
-                abs(observed_counts[d] / total - BENFORD_EXPECTED_PROPORTIONS[d])
-                for d in range(1, 10)
-            )
-            / 9
-        )
+        mad = sum(
+            abs(observed_counts[d] / total - BENFORD_EXPECTED_PROPORTIONS[d])
+            for d in range(1, 10)
+        ) / 9
 
         if mad > mad_threshold:
-            hits.append(
-                {
-                    "rule": "A",
-                    "branch": branch,
-                    "period": period,
-                    "affected_transaction_ids": [t.id for t in transactions],
-                    "counterparty": None,
-                    "metric_value": mad,
-                    "threshold_value": mad_threshold,
-                    "description": (
-                        f"{txn_type} amounts for {branch} in {period} deviate from "
-                        f"Benford's Law (MAD={mad:.4f}, threshold {mad_threshold})."
-                    ),
-                }
-            )
+            hits.append({
+                "rule": "A",
+                "branch": branch,
+                "period": period,
+                "affected_transaction_ids": [t.id for t in transactions],
+                "counterparty": None,
+                "metric_value": mad,
+                "threshold_value": mad_threshold,
+                "description": (
+                    f"{txn_type} amounts for {branch} in {period} deviate from "
+                    f"Benford's Law (MAD={mad:.4f}, threshold {mad_threshold})."
+                ),
+            })
 
     return hits
 
@@ -170,21 +166,19 @@ def rule_b_vendor_concentration(cleaned_transactions, share_threshold=0.05, mini
             share = float(counterparty_total / group_total)
 
             if share > share_threshold:
-                hits.append(
-                    {
-                        "rule": "B",
-                        "branch": branch,
-                        "period": period,
-                        "affected_transaction_ids": [t.id for t in counterparty_transactions],
-                        "counterparty": counterparty,
-                        "metric_value": share * 100,
-                        "threshold_value": share_threshold * 100,
-                        "description": (
-                            f"{counterparty} accounts for {share * 100:.1f}% of {category} "
-                            f"spend in {branch}, {period} (threshold {share_threshold * 100:.0f}%)."
-                        ),
-                    }
-                )
+                hits.append({
+                    "rule": "B",
+                    "branch": branch,
+                    "period": period,
+                    "affected_transaction_ids": [t.id for t in counterparty_transactions],
+                    "counterparty": counterparty,
+                    "metric_value": share * 100,
+                    "threshold_value": share_threshold * 100,
+                    "description": (
+                        f"{counterparty} accounts for {share * 100:.1f}% of {category} "
+                        f"spend in {branch}, {period} (threshold {share_threshold * 100:.0f}%)."
+                    ),
+                })
 
     return hits
 
@@ -236,29 +230,25 @@ def rule_c_duplicate_transactions(cleaned_transactions, day_window=3):
                         smallest_gap_days = gap_days
 
         if flagged_ids:
-            hits.append(
-                {
-                    "rule": "C",
-                    "branch": branch,
-                    "period": period,
-                    "affected_transaction_ids": sorted(flagged_ids),
-                    "counterparty": counterparty,
-                    "metric_value": float(smallest_gap_days),
-                    "threshold_value": float(day_window),
-                    "description": (
-                        f"{len(flagged_ids)} {txn_type} transactions with {counterparty} for "
-                        f"{amount} in {branch}, {period} are within {day_window} days of each "
-                        "other (possible duplicate entry)."
-                    ),
-                }
-            )
+            hits.append({
+                "rule": "C",
+                "branch": branch,
+                "period": period,
+                "affected_transaction_ids": sorted(flagged_ids),
+                "counterparty": counterparty,
+                "metric_value": float(smallest_gap_days),
+                "threshold_value": float(day_window),
+                "description": (
+                    f"{len(flagged_ids)} {txn_type} transactions with {counterparty} for "
+                    f"{amount} in {branch}, {period} are within {day_window} days of each "
+                    "other (possible duplicate entry)."
+                ),
+            })
 
     return hits
 
 
-def rule_d_round_number_clustering(
-    cleaned_transactions, cluster_threshold=0.30, minimum_group_size=5
-):
+def rule_d_round_number_clustering(cleaned_transactions, cluster_threshold=0.30, minimum_group_size=5):
     """Rule D - Round-number clustering.
 
     Applies to: type == 'operating_expense' transactions.
@@ -290,21 +280,19 @@ def rule_d_round_number_clustering(
         proportion = len(round_transactions) / len(transactions)
 
         if proportion > cluster_threshold:
-            hits.append(
-                {
-                    "rule": "D",
-                    "branch": branch,
-                    "period": period,
-                    "affected_transaction_ids": [t.id for t in round_transactions],
-                    "counterparty": None,
-                    "metric_value": proportion * 100,
-                    "threshold_value": cluster_threshold * 100,
-                    "description": (
-                        f"{proportion * 100:.0f}% of {category} amounts in {branch}, {period} "
-                        f"are exact multiples of 50 (threshold {cluster_threshold * 100:.0f}%)."
-                    ),
-                }
-            )
+            hits.append({
+                "rule": "D",
+                "branch": branch,
+                "period": period,
+                "affected_transaction_ids": [t.id for t in round_transactions],
+                "counterparty": None,
+                "metric_value": proportion * 100,
+                "threshold_value": cluster_threshold * 100,
+                "description": (
+                    f"{proportion * 100:.0f}% of {category} amounts in {branch}, {period} "
+                    f"are exact multiples of 50 (threshold {cluster_threshold * 100:.0f}%)."
+                ),
+            })
 
     return hits
 
@@ -349,22 +337,20 @@ def rule_e_frequency_outlier(cleaned_transactions, std_dev_multiplier=3, minimum
             target_count = len(by_month[target_month])
 
             if target_count > threshold_count:
-                hits.append(
-                    {
-                        "rule": "E",
-                        "branch": branch,
-                        "period": target_month,
-                        "affected_transaction_ids": [t.id for t in by_month[target_month]],
-                        "counterparty": counterparty,
-                        "metric_value": float(target_count),
-                        "threshold_value": float(threshold_count),
-                        "description": (
-                            f"{counterparty} had {target_count} {txn_type} transactions with "
-                            f"{branch} in {target_month}, above the baseline of "
-                            f"{baseline_mean:.1f} (+{std_dev_multiplier}σ = {threshold_count:.1f})."
-                        ),
-                    }
-                )
+                hits.append({
+                    "rule": "E",
+                    "branch": branch,
+                    "period": target_month,
+                    "affected_transaction_ids": [t.id for t in by_month[target_month]],
+                    "counterparty": counterparty,
+                    "metric_value": float(target_count),
+                    "threshold_value": float(threshold_count),
+                    "description": (
+                        f"{counterparty} had {target_count} {txn_type} transactions with "
+                        f"{branch} in {target_month}, above the baseline of "
+                        f"{baseline_mean:.1f} (+{std_dev_multiplier}σ = {threshold_count:.1f})."
+                    ),
+                })
 
     return hits
 
@@ -418,22 +404,20 @@ def rule_f_below_reporting_threshold(
                 best_window = window
 
         if best_window is not None and best_total > aggregate_threshold:
-            hits.append(
-                {
-                    "rule": "F",
-                    "branch": branch,
-                    "period": period_key(best_window[0]),
-                    "affected_transaction_ids": [t.id for t in best_window],
-                    "counterparty": counterparty,
-                    "metric_value": float(best_total),
-                    "threshold_value": float(aggregate_threshold),
-                    "description": (
-                        f"{counterparty} made {len(best_window)} payments with {branch} "
-                        f"totaling {best_total} within {window_days} days, each individually "
-                        f"under {individual_threshold} (possible structuring)."
-                    ),
-                }
-            )
+            hits.append({
+                "rule": "F",
+                "branch": branch,
+                "period": period_key(best_window[0]),
+                "affected_transaction_ids": [t.id for t in best_window],
+                "counterparty": counterparty,
+                "metric_value": float(best_total),
+                "threshold_value": float(aggregate_threshold),
+                "description": (
+                    f"{counterparty} made {len(best_window)} payments with {branch} "
+                    f"totaling {best_total} within {window_days} days, each individually "
+                    f"under {individual_threshold} (possible structuring)."
+                ),
+            })
 
     return hits
 
@@ -487,15 +471,14 @@ def rule_g_new_counterparty_high_volume(cleaned_transactions, volume_multiplier=
 
         for counterparty in ordered_counterparties:
             established = [
-                cp
-                for cp in ordered_counterparties
+                cp for cp in ordered_counterparties
                 if first_appearance[cp] < first_appearance[counterparty]
             ]
             if not established:
                 continue
 
-            average_established_volume = sum(first_window_volumes[cp] for cp in established) / len(
-                established
+            average_established_volume = (
+                sum(first_window_volumes[cp] for cp in established) / len(established)
             )
             if average_established_volume == 0:
                 continue
@@ -504,23 +487,21 @@ def rule_g_new_counterparty_high_volume(cleaned_transactions, volume_multiplier=
 
             if target_volume > volume_multiplier * average_established_volume:
                 first_transactions = first_window_transactions(counterparty)
-                hits.append(
-                    {
-                        "rule": "G",
-                        "branch": branch,
-                        "period": period_key(first_transactions[0]),
-                        "affected_transaction_ids": [t.id for t in first_transactions],
-                        "counterparty": counterparty,
-                        "metric_value": float(target_volume),
-                        "threshold_value": float(volume_multiplier * average_established_volume),
-                        "description": (
-                            f"New counterparty {counterparty} did {target_volume} in {txn_type} "
-                            f"volume with {branch} in their first {window_days} days, over "
-                            f"{volume_multiplier}x the ~{average_established_volume:.0f} average "
-                            "for established counterparties."
-                        ),
-                    }
-                )
+                hits.append({
+                    "rule": "G",
+                    "branch": branch,
+                    "period": period_key(first_transactions[0]),
+                    "affected_transaction_ids": [t.id for t in first_transactions],
+                    "counterparty": counterparty,
+                    "metric_value": float(target_volume),
+                    "threshold_value": float(volume_multiplier * average_established_volume),
+                    "description": (
+                        f"New counterparty {counterparty} did {target_volume} in {txn_type} "
+                        f"volume with {branch} in their first {window_days} days, over "
+                        f"{volume_multiplier}x the ~{average_established_volume:.0f} average "
+                        "for established counterparties."
+                    ),
+                })
 
     return hits
 

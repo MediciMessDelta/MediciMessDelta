@@ -22,18 +22,18 @@ from medici.anomaly.rules import (
     run_all_rules,
 )
 from tests.anomaly_fixtures import (
-    below_threshold_non_trigger_transactions,
-    below_threshold_trigger_transactions,
-    benford_non_trigger_transactions,
     benford_trigger_transactions,
-    frequency_outlier_non_trigger_transactions,
-    frequency_outlier_trigger_transactions,
-    new_counterparty_non_trigger_transactions,
-    new_counterparty_trigger_transactions,
-    round_number_non_trigger_transactions,
-    round_number_trigger_transactions,
-    vendor_concentration_non_trigger_transactions,
+    benford_non_trigger_transactions,
     vendor_concentration_trigger_transactions,
+    vendor_concentration_non_trigger_transactions,
+    round_number_trigger_transactions,
+    round_number_non_trigger_transactions,
+    frequency_outlier_trigger_transactions,
+    frequency_outlier_non_trigger_transactions,
+    below_threshold_trigger_transactions,
+    below_threshold_non_trigger_transactions,
+    new_counterparty_trigger_transactions,
+    new_counterparty_non_trigger_transactions,
 )
 from tests.fixtures import SAMPLE_TRANSACTIONS
 
