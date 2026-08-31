@@ -1,0 +1,32 @@
+{
+  "cash_position": {
+    "inflows": "125000.00",
+    "outflows": "87500.00",
+    "net_movement": "37500.00",
+    "closing_balance": "250000.00"
+  },
+  "deposits": {
+    "total": "75000.00",
+    "average": "1500.00"
+  },
+  "withdrawals": {
+    "total": "25000.00",
+    "average": "1000.00"
+  },
+  "loans": {
+    "issued": "50000.00",
+    "repaid": "30000.00",
+    "interest_earned": "4500.00",
+    "yield": "0.09"
+  },
+  "operating_expenses": {
+    "total": "18000.00"
+  },
+  "revenue": {
+    "total": "42000.00"
+  },
+  "net_income": {
+    "total": "24000.00",
+    "margin": "0.5714"
+  }
+}

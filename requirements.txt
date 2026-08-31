@@ -1,0 +1,11 @@
+fastapi
+flask
+uvicorn[standard]
+duckdb
+pandas
+streamlit
+plotly
+requests
+pytest
+ruff
+pydantic

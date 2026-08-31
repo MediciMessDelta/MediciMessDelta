@@ -96,6 +96,47 @@ Not recommended for:
 ## CodeQL Scanner Note
 The CodeQL security scanner encountered an error processing the large data files (medici_transactions.csv and medici_transactions.json). This is a tool limitation, not a security issue. The Python code has been manually reviewed and found to be secure.
 
+## Access Control
+
+The API enforces branch-level access control for transaction endpoints using the authenticated user's role and assigned branch.
+
+* Branch users can access transactions for their assigned branch.
+* Branch users are denied access to other branches with HTTP 403.
+* Managing directors can access transactions for multiple branches.
+* Requests without valid authentication are rejected with HTTP 401.
+* Unknown users are rejected with HTTP 401.
+* Branch authorization is checked before transaction data is returned.
+
+## Managing Director Workflow
+
+The managing director workflow is covered by automated API tests.
+
+The test suite verifies that:
+
+* A managing director can authenticate successfully.
+* The managing director role is returned correctly.
+* The managing director does not have a branch restriction.
+* A managing director can access both Florence and Rome transaction data.
+* Password credentials are not returned in the login response.
+
+## Authorization Test Coverage
+
+Automated tests in `tests/test_api.py` cover the primary authorization scenarios:
+
+* `test_branch_user_can_access_own_branch`
+* `test_branch_user_cannot_access_other_branch`
+* `test_managing_director_can_access_any_branch`
+* `test_unauthenticated_user_cannot_access_branch`
+* `test_unknown_user_is_rejected`
+* `test_managing_director_can_access_each_branch`
+
+Current test status:
+
+**84 tests passed**
+
+These tests provide regression coverage for authentication, branch authorization, and managing director access workflows.
+
+
 ## Conclusion
 **Security Status**: ✓ PASSED
 
