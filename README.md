@@ -1,3 +1,5 @@
+![MediciMessDelta banking analytics dashboard preview](assets/medici-dashboard-preview.svg)
+
 # MediciMess
 
 A Python implementation of double-entry bookkeeping inspired by the Medici banking dynasty of Renaissance Florence.
